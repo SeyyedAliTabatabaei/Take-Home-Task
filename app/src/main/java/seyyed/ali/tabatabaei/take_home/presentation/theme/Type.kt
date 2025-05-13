@@ -1,4 +1,4 @@
-package seyyed.ali.tabatabaei.take_home.ui.theme
+package seyyed.ali.tabatabaei.take_home.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
