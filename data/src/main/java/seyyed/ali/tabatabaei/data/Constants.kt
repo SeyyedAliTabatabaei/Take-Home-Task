@@ -6,4 +6,5 @@ object Constants {
 
     const val LIGHT_BULB_STATUS_TOPIC = "light_bulb_status"
     const val LIGHT_BULB_BRIGHTNESS_TOPIC = "light_bulb_brightness"
+    const val PING_TOPIC = "ping"
 }

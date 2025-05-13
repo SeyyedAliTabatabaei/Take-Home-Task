@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,6 +59,8 @@ class MqttManager(
             Log.i(TAG, "onSuccess: $asyncActionToken")
             scope.launch {
                 _connectionStatus.emit(MqttConnectionStatus.CONNECTED)
+                subscribe(Constants.PING_TOPIC)
+                keepConnectionMqtt()
             }
         }
 
@@ -109,6 +112,7 @@ class MqttManager(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val connectionScope = CoroutineScope(Dispatchers.IO)
+    private val keepConnectionScope = CoroutineScope(Dispatchers.IO)
 
     init {
         mqttClient.setCallback(mqttCallback)
@@ -167,6 +171,16 @@ class MqttManager(
                         }
                     }
                 }
+        }
+    }
+
+    private fun keepConnectionMqtt() {
+        keepConnectionScope.cancel()
+        keepConnectionScope.launch {
+            while (true) {
+                delay(30000)
+                publish(Constants.PING_TOPIC , "ping")
+            }
         }
     }
 
