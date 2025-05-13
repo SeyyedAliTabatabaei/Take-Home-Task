@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Take-Home</string>
+
+    <string name="connection_status">Connection Status : %s</string>
+    <string name="connection_disconnect">Connection is not established. Please check your network connections.</string>
+    <string name="connection_connecting">Establishing connection. Please wait.</string>
 </resources>
