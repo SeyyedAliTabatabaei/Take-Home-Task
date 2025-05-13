@@ -2,6 +2,7 @@ package seyyed.ali.tabatabaei.data.repository.lightBulb
 
 import kotlinx.coroutines.flow.Flow
 import seyyed.ali.tabatabaei.data.Constants
+import seyyed.ali.tabatabaei.domain.model.lightStatus.LightBulbBrightness
 import seyyed.ali.tabatabaei.domain.model.lightStatus.LightBulbStatus
 import seyyed.ali.tabatabaei.domain.repositories.lightBulb.LightBulbRemoteDataSource
 import seyyed.ali.tabatabaei.domain.repositories.lightBulb.LightBulbRepository
@@ -17,6 +18,13 @@ class LightBulbRepositoryImpl(
 
     override val observeLightBulbStatus: Flow<LightBulbStatus.Response>
         get() = lightBulbRemoteDataSource.observeLightBulbStatus
+
+    override fun setLightBulbBrightness(requestData: LightBulbBrightness.Request) {
+        lightBulbRemoteDataSource.setLightBulbBrightness(requestData)
+    }
+
+    override val observeLightBulbBrightness: Flow<LightBulbBrightness.Response>
+        get() = lightBulbRemoteDataSource.observeLightBulbBrightness
 
     override fun clearLightBulbStatus() {
         lightBulbRemoteDataSource.clearLightBulbStatus()

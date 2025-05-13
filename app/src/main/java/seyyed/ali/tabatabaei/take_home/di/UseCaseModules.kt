@@ -5,12 +5,14 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
-import seyyed.ali.tabatabaei.domain.model.enums.MqttConnectionStatus
+import seyyed.ali.tabatabaei.domain.model.lightStatus.LightBulbBrightness
 import seyyed.ali.tabatabaei.domain.repositories.lightBulb.LightBulbRepository
 import seyyed.ali.tabatabaei.domain.repositories.mqtt.MqttRepository
 import seyyed.ali.tabatabaei.domain.useCase.ClearLightBulbStatusUseCase
+import seyyed.ali.tabatabaei.domain.useCase.LightBulbBrightnessUseCase
 import seyyed.ali.tabatabaei.domain.useCase.LightBulbStatusUseCase
 import seyyed.ali.tabatabaei.domain.useCase.MqttConnectionStatusUseCase
+import seyyed.ali.tabatabaei.domain.useCase.SetLightBulbBrightnessUseCase
 import seyyed.ali.tabatabaei.domain.useCase.SetLightBulbStatusUseCase
 import javax.inject.Singleton
 
@@ -38,9 +40,20 @@ object UseCaseModules {
 
     @Singleton
     @Provides
-    fun provideLightBulbStatusUseCasee(lightBulbRepository: LightBulbRepository) : LightBulbStatusUseCase{
+    fun provideLightBulbStatusUseCase(lightBulbRepository: LightBulbRepository) : LightBulbStatusUseCase{
         return LightBulbStatusUseCase(lightBulbRepository , Dispatchers.IO)
     }
 
+    @Singleton
+    @Provides
+    fun provideSetLightBulbBrightnessUseCase(lightBulbRepository: LightBulbRepository) : SetLightBulbBrightnessUseCase{
+        return SetLightBulbBrightnessUseCase(lightBulbRepository , Dispatchers.IO)
+    }
+
+    @Singleton
+    @Provides
+    fun provideLightBulbBrightnessUseCase(lightBulbRepository: LightBulbRepository) : LightBulbBrightnessUseCase{
+        return LightBulbBrightnessUseCase(lightBulbRepository , Dispatchers.IO)
+    }
 
 }

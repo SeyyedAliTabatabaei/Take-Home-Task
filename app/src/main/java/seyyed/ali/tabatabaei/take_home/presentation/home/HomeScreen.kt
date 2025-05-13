@@ -18,9 +18,14 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -32,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import seyyed.ali.tabatabaei.domain.model.enums.BulbStatus
 import seyyed.ali.tabatabaei.take_home.R
@@ -43,7 +49,14 @@ import seyyed.ali.tabatabaei.take_home.presentation.theme.TakeHomeTheme
 fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
     val connectionStatus by viewModel.connectionStatus.collectAsState()
     val lightStatus by viewModel.lightBulbStatus.collectAsState()
+    val lightBrightness by viewModel.lightBulbBrightness.collectAsState()
+    var brightnessState by remember { mutableStateOf(50f) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(brightnessState) {
+        delay(500)
+        viewModel.setLightBrightness(brightnessState.toInt())
+    }
 
     Scaffold(
         topBar = {
@@ -65,11 +78,16 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
         ){
             LightBulb(
                 modifier = Modifier.padding(horizontal = 60.dp),
-                bulbStatus = lightStatus.lightBulbStatus
+                bulbStatus = lightStatus.lightBulbStatus ,
+                brightness = lightBrightness.brightness
             )
 
             SetBrightnessLightBulb(
-                modifier = Modifier.padding(vertical = 20.dp , horizontal = 20.dp)
+                modifier = Modifier.padding(vertical = 20.dp , horizontal = 20.dp) ,
+                brightness = brightnessState ,
+                brightnessChange = { newBrightness ->
+                    brightnessState = newBrightness
+                }
             )
 
             ButtonLightBulb(
@@ -77,7 +95,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
                 bulbStatus = lightStatus.lightBulbStatus
             ){
                 scope.launch {
-                    viewModel.setLightStatus()
+                    viewModel.toggleLightStatus()
                 }
             }
         }
@@ -105,18 +123,18 @@ fun LightBulb(modifier: Modifier = Modifier, bulbStatus: BulbStatus, brightness 
         Image(
             painter = painterResource(id = R.drawable.lamp_on) ,
             contentDescription = "Lamp On",
-            modifier = Modifier.alpha(brightnessLamp)
+            modifier = Modifier.alpha(brightnessLamp/100)
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SetBrightnessLightBulb(modifier: Modifier = Modifier) {
+fun SetBrightnessLightBulb(modifier: Modifier = Modifier , brightness: Float , brightnessChange : (newBrightness : Float) -> Unit) {
     Slider(
-        value = 0f,
-        onValueChange = {  },
-        valueRange = 0f..100f,
+        value = brightness,
+        onValueChange = { brightnessChange(it) },
+        valueRange = 1f..100f,
         modifier = modifier ,
         thumb = {
             Box(

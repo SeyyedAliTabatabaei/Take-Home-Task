@@ -8,6 +8,7 @@ import seyyed.ali.tabatabaei.data.Constants
 import seyyed.ali.tabatabaei.data.config.mqtt.MqttManager
 import seyyed.ali.tabatabaei.domain.model.enums.BulbStatus
 import seyyed.ali.tabatabaei.domain.model.enums.MqttConnectionStatus
+import seyyed.ali.tabatabaei.domain.model.lightStatus.LightBulbBrightness
 import seyyed.ali.tabatabaei.domain.model.lightStatus.LightBulbStatus
 import seyyed.ali.tabatabaei.domain.repositories.lightBulb.LightBulbRemoteDataSource
 import seyyed.ali.tabatabaei.domain.repositories.mqtt.MqttRemoteDataSource
@@ -35,8 +36,23 @@ class LightBulbRemoteDataSourceImpl(
             }
         }
 
+    override fun setLightBulbBrightness(requestData: LightBulbBrightness.Request) {
+        mqttManager.publish(Constants.LIGHT_BULB_BRIGHTNESS_TOPIC , requestData.brightness.toString())
+    }
+
+    override val observeLightBulbBrightness: Flow<LightBulbBrightness.Response>
+        get() {
+            mqttManager.subscribe(Constants.LIGHT_BULB_BRIGHTNESS_TOPIC)
+            return mqttManager.messages.filter { it.topic == Constants.LIGHT_BULB_BRIGHTNESS_TOPIC }.map {
+                return@map LightBulbBrightness.Response(
+                    brightness = it.message?.toIntOrNull() ?: 0,
+                )
+            }
+        }
+
     override fun clearLightBulbStatus() {
         mqttManager.unsubscribe(Constants.LIGHT_BULB_STATUS_TOPIC)
+        mqttManager.unsubscribe(Constants.LIGHT_BULB_BRIGHTNESS_TOPIC)
     }
 
 
