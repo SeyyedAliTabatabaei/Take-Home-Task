@@ -15,6 +15,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -32,6 +34,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import seyyed.ali.tabatabaei.domain.model.enums.BulbStatus
+import seyyed.ali.tabatabaei.domain.model.enums.MqttConnectionStatus
 import seyyed.ali.tabatabaei.take_home.R
 import seyyed.ali.tabatabaei.take_home.presentation.theme.TakeHomeTheme
 
@@ -52,6 +56,8 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
     val lightBrightness by viewModel.lightBulbBrightness.collectAsState()
     var brightnessState by remember { mutableStateOf(50f) }
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(brightnessState) {
         delay(500)
@@ -66,8 +72,8 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
                     style = MaterialTheme.typography.bodyMedium
                 ) }
             )
-        }
-
+        } ,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -86,7 +92,13 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
                 modifier = Modifier.padding(vertical = 20.dp , horizontal = 20.dp) ,
                 brightness = brightnessState ,
                 brightnessChange = { newBrightness ->
-                    brightnessState = newBrightness
+                    scope.launch {
+                        when(connectionStatus){
+                            MqttConnectionStatus.CONNECTED -> brightnessState = newBrightness
+                            MqttConnectionStatus.DISCONNECTED -> snackbarHostState.showSnackbar(context.getString(R.string.connection_disconnect))
+                            MqttConnectionStatus.CONNECTING -> snackbarHostState.showSnackbar(context.getString(R.string.connection_connecting))
+                        }
+                    }
                 }
             )
 
@@ -95,14 +107,17 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
                 bulbStatus = lightStatus.lightBulbStatus
             ){
                 scope.launch {
-                    viewModel.toggleLightStatus()
+                    when(connectionStatus){
+                        MqttConnectionStatus.CONNECTED -> viewModel.toggleLightStatus()
+                        MqttConnectionStatus.DISCONNECTED -> snackbarHostState.showSnackbar(context.getString(R.string.connection_disconnect))
+                        MqttConnectionStatus.CONNECTING -> snackbarHostState.showSnackbar(context.getString(R.string.connection_connecting))
+                    }
                 }
             }
         }
-
     }
-
 }
+
 
 @Composable
 fun LightBulb(modifier: Modifier = Modifier, bulbStatus: BulbStatus, brightness : Int = 50) {
